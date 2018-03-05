@@ -17,6 +17,8 @@
 #define VS_XDCS   7 // Data Chip Select / BSYNC Pin
 #define VS_RESET  8 // Reset Pin: It is active low
 
+#define KICK_PIN  9 // Pin for KICK Push button
+
 // Piezo defines
 #define NUM_PIEZOS 6
 #define SNARE_THRESHOLD 60    // anything < TRIGGER_THRESHOLD is treated as 0
@@ -65,6 +67,8 @@ boolean        isLastPeakZeroed[NUM_PIEZOS];
 
 unsigned long lastPeakTime[NUM_PIEZOS];
 unsigned long lastNoteTime[NUM_PIEZOS];
+
+int           kickStatus;
 
 byte chan;
 
@@ -346,6 +350,9 @@ setup() {
   }
   memset(signalBuffer, 0, NUM_PIEZOS*SIGNAL_BUFFER_SIZE*sizeof(unsigned short));
   memset(peakBuffer,   0, NUM_PIEZOS*PEAK_BUFFER_SIZE*sizeof(unsigned short));
+
+  pinMode(KICK_PIN, INPUT_PULLUP);
+  kickStatus = false;
 }
 
 
@@ -388,5 +395,12 @@ loop() {
     currentSignalIndex[i]++;
     if(currentSignalIndex[i] == SIGNAL_BUFFER_SIZE) currentSignalIndex[i] = 0;
   }// for(short i=0; i<NUM_PIEZOS; ++i)
+  int bKick = digitalRead(KICK_PIN);
+  if((bKick == LOW) && (bKick != kickStatus)) {
+    noteFire(DRUM_CHAN, noteMap[0], 127);
+    kickStatus == LOW;
+  }
+  else
+    kickStatus = HIGH;
 }
 
